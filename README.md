@@ -6,6 +6,11 @@ v3 版本仍然实现了 global、gfwlist、chnonly、chnroute 四种分流模�
 
 ss-tproxy 可以运行在 Linux 软路由/网关、Linux 物理机、Linux 虚拟机等环境中，可以透明代理 ss-tproxy 主机本身以及所有网关指向 ss-tproxy 主机的其它主机的 TCP 与 UDP 流量。即使 ss-tproxy 不是运行在 Linux 软路由/网关上，但通过某些"技巧"，ss-tproxy 依旧能够透明代理其它主机的 TCP 与 UDP 流量。比如你在某台内网主机（假设 IP 地址为 192.168.0.100）中运行 ss-tproxy，那么你只要将该内网中的其它主机的网关以及 DNS 服务器设为 192.168.0.100，那么这些内网主机的 TCP 和 UDP 就会被透明代理。当然这台内网主机也可以是一个 Linux 虚拟机（网络要设为桥接模式，只需要一张网卡）。
 
+## Todo List
+- [ ] ipv6 透明代理支持
+- [ ] 内网主机黑白名单支持(实验性)
+- [ ] 开发新版 chinadns，尝试解决原版遗留问题
+
 ## 脚本依赖
 - [ss-tproxy 脚本相关依赖的安装方式参考](https://www.zfl9.com/ss-redir.html#%E5%AE%89%E8%A3%85%E4%BE%9D%E8%B5%96)
 - global 模式：TPROXY 模块、ip 命令、dnsmasq 命令
@@ -58,6 +63,8 @@ rm -fr /etc/ss-tproxy /usr/local/bin/ss-tproxy
 - `iptables_intranet` 为要代理的内网的网段，默认为 192.168.0.0/16，根据需要修改
 - 如需配置 gfwlist 扩展列表，请编辑 `/etc/ss-tproxy/gfwlist.ext`，然后重启脚本生效
 - `proxy_ipv6` 目前只支持 `false` ，原理是通过 `DNS` 返回中丢弃 `AAAA` 记录
+
+> 注意，`iptables_intranet` 不允许省略后面的 `0`，如 `192.168/16` 是错误的，请规范填写。
 
 `proxy_server` 用来填写服务器的地址，可以是域名也可以是 IP，支持填写多个服务器的地址，使用空格隔开就行。这里解释一下多个服务器地址的作用，其实这个功能是最近才加上去的，也是受到了某位热心网友的启发，在这之前，proxy_server 只能填写一个地址，但是有些时候我们经常需要切换代理服务器，比如现在我手中有 A、B 两台服务器，目前用的是 A 服务器做代理，但是因为某些不可抗拒的因素，A 服务器出了点问题，我需要切换到 B 服务器来上网，那么必须修改 ss-tproxy.conf 里面的 proxy_server，然后修改对应的启动命令以及关闭命令，最后才能执行 `ss-tproxy restart` 来生效，然后过了段时间，发现 A 服务器好了，因为 A 服务器的线路比 B 服务器的好，所以我又想切换回 A 服务器，这时候又要重复上述步骤，改完配置文件再重启 ss-tproxy，非常麻烦。
 
